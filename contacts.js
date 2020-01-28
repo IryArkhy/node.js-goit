@@ -24,7 +24,7 @@ function getContactById(contactId) {
       if (contact.id === contactId) return contact;
     });
     if (neededContact.length === 0) {
-      console.log('ID not found');
+      console.log('ID is not found');
       return;
     }
     console.table(neededContact);
@@ -47,7 +47,7 @@ function removeContact(contactId) {
         console.log(err);
         return;
       }
-      console.log('Contacts removed');
+      console.log('Contact is removed');
     });
   });
 }
@@ -73,7 +73,7 @@ function addContact(name, email, phone) {
         console.log(err);
         return;
       }
-      console.log('Contacts Added');
+      console.log('Contact is Added');
     });
   });
 }
