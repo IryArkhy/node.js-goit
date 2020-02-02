@@ -1,7 +1,5 @@
-const argv = require("yargs").argv;
 const express = require("express");
 const app = express();
-const fs = require("fs");
 const cors = require("cors");
 const logger = require("morgan");
 const listActions = require("./contacts");
@@ -27,13 +25,13 @@ app.get("/api/contacts/:contactId", (req, res) => {
 });
 app.post("/api/contacts", (req, res) => {
   const { name, email, phone } = req.body;
-  const newContact = listActions.addContact(name, email, phone);
   if (!name || !phone || !email) {
     return res.status(422).json({
       message: "Some fields are missing"
     });
   }
-  res.status(201).json(newContact);
+  const newContact = listActions.addContact(name, email, phone);
+  res.status(201).json({ newContact });
 });
 
 app.delete("/api/contacts/:contactId", (req, res) => {
@@ -41,7 +39,26 @@ app.delete("/api/contacts/:contactId", (req, res) => {
   listActions.removeContact(contactId);
   res.status(200).json({ contactId, message: "Contact has been removed" });
 });
-app.patch("/api/contacts/:contactId");
+
+app.patch("/api/contacts", (req, res) => {
+  res.status(400).json({
+    message: "Method @PATCH not have userId in path"
+  });
+});
+
+app.patch("/api/contacts/:contactId", (req, res) => {
+  const { contactId } = req.params;
+  const { name, email, phone } = req.body;
+
+  if (!name & !phone & !email) {
+    return res.status(400).json({
+      message: "Some fields are missing"
+    });
+  }
+
+  listActions.updateContact(contactId, name, email, phone);
+  res.status(200).json({ contact: listActions.getContactById(contactId) });
+});
 
 app.use("*", (req, res) =>
   res.status(404).send(`This path ${req.url} cannot be found`)
@@ -52,28 +69,3 @@ app.use((err, req, res) =>
   })
 );
 app.listen(port, () => console.log(`Server started on port ${port}`));
-
-// function invokeAction({ action, id, name, email, phone }) {
-//   switch (action) {
-//     case "list":
-//       listActions.listContacts();
-//       break;
-
-//     case "get":
-//       listActions.getContactById(id);
-//       break;
-
-//     case "add":
-//       listActions.addContact(name, email, phone);
-//       break;
-
-//     case "remove":
-//       listActions.removeContact(id);
-//       break;
-
-//     default:
-//       console.warn("\x1B[31m Unknown action type!");
-//   }
-// }
-
-// invokeAction(argv);
