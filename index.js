@@ -1,12 +1,14 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const logger = require("morgan");
+// const logger = require("morgan"); //for "development"
 const listActions = require("./contacts");
 
 const port = process.env.PORT || 5000;
 
-app.use(logger("dev"));
+//for "development"
+// app.use(logger("dev"));
+
 app.use(cors("*"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -68,4 +70,6 @@ app.use((err, req, res) =>
     error: err.message
   })
 );
-app.listen(port, () => console.log(`Server started on port ${port}`));
+
+//for "development"
+// app.listen(port, () => console.log(`Server started on port ${port}`));
