@@ -49,6 +49,7 @@ const updateContact = (contactId, name, email, phone) => {
   return contacts;
 };
 
+
 module.exports = {
   listContacts,
   getContactById,
@@ -68,3 +69,5 @@ module.exports = {
 //     if (typeof contact.id === "number") return contact.id === Number(contactId);
 //     return contact.id === contactId;
 //   });
+
+
