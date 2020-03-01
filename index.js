@@ -1,12 +1,16 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-// const logger = require("morgan"); //for "development"
-const listActions = require("./contacts");
-
+const dbConnection = require("./src/db/dbConection");
+const Contact = require("./src/models/contact");
+const logger = require("morgan"); //for "development"
 const port = process.env.PORT || 5000;
 
-//for "development"
+app.listen(port, () => console.log(`Server started on port ${port}`));
+
+dbConnection();
+
+//----------- for "development" --------------
 // app.use(logger("dev"));
 
 app.use(cors("*"));
@@ -14,52 +18,74 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/api/contacts", (req, res) => {
-  const contacts = listActions.listContacts();
-  res.status(200).json({ contacts });
+  Contact.find()
+    .then(contacts => {
+      res.status(200).json(contacts);
+    })
+    .catch(err => {
+      res.status(400).json({ error: err });
+    });
+
 });
 
 app.get("/api/contacts/:contactId", (req, res) => {
   const { contactId } = req.params;
-  const contact = listActions.getContactById(contactId);
-  if (!contact)
-    return res.status(404).json({ message: "Contact is not found" });
-  res.status(200).json(contact);
+
+  Contact.findById(contactId)
+    .then(contact => {
+      if (!contact) return res.status(404).json({ contact: contact });
+      res.json({ contact: contact });
+    })
+    .catch(err => res.status(400).json({ error: err }));
 });
 app.post("/api/contacts", (req, res) => {
-  const { name, email, phone } = req.body;
-  if (!name || !phone || !email) {
-    return res.status(422).json({
-      message: "Some fields are missing"
-    });
-  }
-  const newContact = listActions.addContact(name, email, phone);
-  res.status(201).json({ newContact });
+  const contactData = req.body;
+  const newContact = new Contact(contactData);
+  newContact
+    .save()
+    .then(result =>
+      res.status(201).json({
+        result
+      }))
+    .catch(err => res.status(400).json({ error: err }));
 });
 
 app.delete("/api/contacts/:contactId", (req, res) => {
   const { contactId } = req.params;
-  listActions.removeContact(contactId);
-  res.status(200).json({ contactId, message: "Contact has been removed" });
+
+  Contact.findOneAndDelete({ _id: contactId })
+    .then(contact => {
+      if (!contact) {
+        return res
+          .status(404)
+          .json({ contact: contact, message: `Contact is not found by this ${contactId}` });
+      }
+
+      res.json({ contact: contact, message: "Contact is  deleted successfully" });
+    })
+    .catch(error => res.status(400).json({ error: error }));
+
 });
 
 app.patch("/api/contacts", (req, res) => {
   res.status(400).json({
-    message: "Method @PATCH not have userId in path"
+    message: "Method @PATCH not have contactId in path"
   });
 });
 
 app.patch("/api/contacts/:contactId", (req, res) => {
   const { contactId } = req.params;
-  const { name, email, phone } = req.body;
+  const newFields = req.body;
 
-  if (!name & !phone & !email) {
-    return res.status(400).json({
-      message: "Some fields are missing"
-    });
-  }
-
-  listActions.updateContact(contactId, name, email, phone);
-  res.status(200).json({ contact: listActions.getContactById(contactId) });
+  Contact.findByIdAndUpdate(contactId, { $set: newFields }, { new: true })
+    .then(contact => {
+      if (!contact)
+        return res
+          .status(404)
+          .json({ contact: contact, message: `contact id:${contactId} was not found` });
+      res.json({ contact: contact });
+    })
+    .catch(err => res.status(400).json({ error: err }));
 });
 
 app.use("*", (req, res) =>
@@ -71,5 +97,4 @@ app.use((err, req, res) =>
   })
 );
 
-//for "development"
-// app.listen(port, () => console.log(`Server started on port ${port}`));
+
