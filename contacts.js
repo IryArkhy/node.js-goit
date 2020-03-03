@@ -58,16 +58,5 @@ module.exports = {
   updateContact
 };
 
-//Var2-----------
-// function listContacts() {
-//   const contacts = fs.readFileSync(contactsPath, { encoding: "utf-8" });
-//   return JSON.parse(contacts);
-// }
-
-// const getContactById = contactId =>
-//   listContacts().find(contact => {
-//     if (typeof contact.id === "number") return contact.id === Number(contactId);
-//     return contact.id === contactId;
-//   });
 
 
