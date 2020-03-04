@@ -1,21 +1,26 @@
 const express = require("express");
-const config = require("./src/config");
 const app = express();
 const cors = require("cors");
-const dbConnection = require("./src/db/dbConection");
-const Contact = require("./src/models/contact");
-const apiRouter = require("./src/router");
 const logger = require("morgan"); //for "development"
-const port = process.env.PORT || 5000;
+const config = require("./src/config");
+const apiRouter = require("./src/router");
+const dbConnection = require("./src/db/dbConection");
+const getAllContacts = require("./src/contacts/getAllContacts");
+const getContactsPAGINATION = require("./src/contacts/pagination");
+const getContactById = require("./src/contacts/getContactById");
+const createContact = require("./src/contacts/createContact");
+const deleteContact = require("./src/contacts/deleteContact");
+const editContact = require("./src/contacts/editContact");
+const deleteUser = require("./src/users/deleteUser");
+const editUser = require("./src/users/editUser");
+const getSortedUsersBySubscription = require("./src/users/sortbySubscrip")
 
 
+const port = config.port;
 app.listen(port, () => console.log(`Server started on port ${port}`));
-
 dbConnection();
 
-//----------- for "development" --------------
 if (config.mode === "development") app.use(logger('dev'));
-
 app.use(cors("*"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -25,76 +30,35 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", apiRouter);
 
 //----------- Contacts -----------------
-app.get("/api/contacts", (req, res) => {
-  Contact.find()
-    .then(contacts => {
-      res.status(200).json(contacts);
-    })
-    .catch(err => {
-      res.status(400).json({ error: err });
-    });
-
-});
-
-app.get("/api/contacts/:contactId", (req, res) => {
-  const { contactId } = req.params;
-
-  Contact.findById(contactId)
-    .then(contact => {
-      if (!contact) return res.status(404).json({ contact: contact });
-      res.json({ contact: contact });
-    })
-    .catch(err => res.status(400).json({ error: err }));
-});
-app.post("/api/contacts", (req, res) => {
-  const contactData = req.body;
-  const newContact = new Contact(contactData);
-  newContact
-    .save()
-    .then(result =>
-      res.status(201).json({
-        result
-      }))
-    .catch(err => res.status(400).json({ error: err }));
-});
-
-app.delete("/api/contacts/:contactId", (req, res) => {
-  const { contactId } = req.params;
-
-  Contact.findOneAndDelete({ _id: contactId })
-    .then(contact => {
-      if (!contact) {
-        return res
-          .status(404)
-          .json({ contact: contact, message: `Contact is not found by this ${contactId}` });
-      }
-
-      res.json({ contact: contact, message: "Contact is  deleted successfully" });
-    })
-    .catch(error => res.status(400).json({ error: error }));
-
-});
-
+app.get("/api/contacts", getAllContacts);
+app.get("/api/contacts/:contactId", getContactById);
+app.post("/api/contacts", createContact);
+app.delete("/api/contacts/:contactId", deleteContact);
+app.patch("/api/contacts/:contactId", editContact);
 app.patch("/api/contacts", (req, res) => {
   res.status(400).json({
     message: "Method @PATCH not have contactId in path"
   });
 });
 
-app.patch("/api/contacts/:contactId", (req, res) => {
-  const { contactId } = req.params;
-  const newFields = req.body;
+//------------ Editional tasks --------------------
+// 1) Pagination
+//Example: http://localhost:5000/api/contactsP?limit=5&page=3
 
-  Contact.findByIdAndUpdate(contactId, { $set: newFields }, { new: true })
-    .then(contact => {
-      if (!contact)
-        return res
-          .status(404)
-          .json({ contact: contact, message: `contact id:${contactId} was not found` });
-      res.json({ contact: contact });
-    })
-    .catch(err => res.status(400).json({ error: err }));
-});
+app.get("/api/contactsP", getContactsPAGINATION);
+
+// 2) Sort users
+//http://localhost:5000/api/users?sub=free
+app.get("/api/users", getSortedUsersBySubscription);
+
+// 3) Edit users' data
+//http://localhost:5000/api/users/5e5fb7304dfffc5c532a8f9a
+app.patch("/api/users/:userId", editUser);
+
+// 4) Delete usere
+app.delete("/api/users/:userId", deleteUser);
+
+
 
 app.use("*", (req, res) =>
   res.status(404).send(`This path ${req.url} cannot be found`)
