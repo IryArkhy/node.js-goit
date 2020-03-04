@@ -1,22 +1,30 @@
 const express = require("express");
+const config = require("./src/config");
 const app = express();
 const cors = require("cors");
 const dbConnection = require("./src/db/dbConection");
 const Contact = require("./src/models/contact");
+const apiRouter = require("./src/router");
 const logger = require("morgan"); //for "development"
 const port = process.env.PORT || 5000;
+
 
 app.listen(port, () => console.log(`Server started on port ${port}`));
 
 dbConnection();
 
 //----------- for "development" --------------
-// app.use(logger("dev"));
+if (config.mode === "development") app.use(logger('dev'));
 
 app.use(cors("*"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+//--------- Authorization --------------
+app.use("/api", apiRouter);
+
+//----------- Contacts -----------------
 app.get("/api/contacts", (req, res) => {
   Contact.find()
     .then(contacts => {
