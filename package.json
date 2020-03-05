@@ -4,9 +4,14 @@
   "description": "Homework repository",
   "main": "index.js",
   "dependencies": {
+    "bcrypt": "^4.0.1",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.1",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.2",
+    "mongoose-paginate-v2": "^1.3.6",
     "morgan": "^1.9.1",
     "shortid": "^2.2.15",
     "yargs": "^15.1.0"
@@ -15,8 +20,8 @@
     "nodemon": "^2.0.2"
   },
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "cross-env node NODE_ENV=production index.js",
+    "dev": "cross-env nodemon NODE_ENV=development index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
