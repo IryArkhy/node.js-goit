@@ -41,7 +41,7 @@ app.patch("/api/contacts", (req, res) => {
   });
 });
 
-//------------ Editional tasks --------------------
+//------------ Additional tasks --------------------
 // 1) Pagination
 //Example: http://localhost:5000/api/contactsP?limit=5&page=3
 
